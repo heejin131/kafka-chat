@@ -1,0 +1,19 @@
+[project]
+name = "kafka-chat"
+version = "0.1.0"
+description = "kafka python chat"
+authors = [
+    {name = "heejin131", email = "journeyjean131@gmail.com"},
+]
+dependencies = ["tqdm>=4.67.1", "kafka-python>=2.1.5"]
+requires-python = ">=3.12"
+readme = "README.md"
+license = {text = "MIT"}
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+
+[tool.pdm]
+distribution = true
