@@ -13,7 +13,7 @@ def chatpro():
 
     try:
         while True:
-            message = input(">>> ")
+            message = input("YOU :")
             if message.strip():
                 producer.send(topic, message)
                 producer.flush()
