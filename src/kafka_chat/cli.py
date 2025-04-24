@@ -6,7 +6,7 @@ import json
 def chatpro():
     bootstrap_servers = input("🛠️  Kafka bootstrap_servers 주소 입력 (예: 3.36.114.98:9093): ").strip()
     topic = input("🧭 전송할 토픽 이름 입력: ").strip()
-    producer = KafkaProducer(bootstrap_servers=bootstrap_servers,value_serializer=lambda v: json.dumps(v).encode('utf-8'))
+    producer = KafkaProducer(bootstrap_servers=bootstrap_servers,value_serializer=lambda v: json.dumps(v, ensure_ascii=False).encode('utf-8'))
 
     print(f"📡 Kafka 연결됨: {bootstrap_servers}")
     print(f"✉️  메시지 전송 대상 토픽: {topic}")
