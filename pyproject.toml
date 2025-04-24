@@ -1,6 +1,6 @@
 [project]
 name = "kafka-chat"
-version = "0.2.0"
+version = "0.3.0"
 description = "kafka python chat"
 authors = [
     {name = "heejin131", email = "journeyjean131@gmail.com"},
@@ -14,9 +14,9 @@ license = {text = "MIT"}
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
 
-
 [tool.pdm]
 distribution = true
 
 [project.scripts]
 chatpro = "kafka_chat.cli:chatpro"
+chatroom = "chatroom.main:entry_point"
