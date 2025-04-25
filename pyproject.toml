@@ -1,11 +1,11 @@
 [project]
 name = "kafka-chat"
-version = "0.1.0"
+version = "0.3.0"
 description = "kafka python chat"
 authors = [
     {name = "heejin131", email = "journeyjean131@gmail.com"},
 ]
-dependencies = ["tqdm>=4.67.1", "kafka-python>=2.1.5"]
+dependencies = ["tqdm>=4.67.1", "kafka-python>=2.1.5", "typer>=0.15.2", "textual>=3.1.1", "textual-dev>=1.7.0"]
 requires-python = ">=3.12"
 readme = "README.md"
 license = {text = "MIT"}
@@ -14,6 +14,10 @@ license = {text = "MIT"}
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
 
-
 [tool.pdm]
 distribution = true
+
+[project.scripts]
+chatpro = "kafka_chat.cli:chatpro"
+chatroom = "chatroom.main:entry_point"
+chatroom-ui = "chatroom.ui:entry_point"
