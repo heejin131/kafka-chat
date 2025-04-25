@@ -1,6 +1,6 @@
 from textual.app import App, ComposeResult
-from textual.widgets import TextArea, Input, Button, Static
-from textual.containers import Vertical
+from textual.widgets import Log, Input, Button, Static
+from textual.containers import Container
 from kafka import KafkaConsumer, KafkaProducer
 from datetime import datetime
 import json
@@ -8,11 +8,12 @@ import threading
 import re
 from asyncio import create_task
 from threading import Timer
+import os
 
 
 class KafkaChatApp(App):
     BINDINGS = [("ctrl+c", "quit", "앱 종료"), ("escape", "quit", "앱 종료")]
-    CSS_PATH = "chatroom.tcss"
+    CSS_PATH = os.path.abspath("/home/gmlwls5168/code/kafka-chat/src/chatroom/chatroom.tcss")
 
     def __init__(self):
         super().__init__()
@@ -26,12 +27,14 @@ class KafkaChatApp(App):
         self._last_typing = ""
 
     def compose(self) -> ComposeResult:
-        with Vertical():
-            yield Static("\ud83d\udcac Kafka \ucc44\ud305 \uc2dc\uc791", id="title")
-            yield Input(placeholder="\ud83d\udcf1 Kafka broker (\uc608: 34.64.x.x:9093)", id="broker")
-            yield Input(placeholder="\ud83d\udcac \ucc44\ud305 \ud1b5\ud2c0", id="topic")
-            yield Input(placeholder="\ud83e\uddd1 \ub0b4 \uc774\ub984", id="name")
-            yield Button("\u2705 \ucc44\ud305 \uc2dc\uc791", id="start")
+        yield Container(
+            Static("💬 Kafka 채팅 시작", id="title"),
+            Input(placeholder="📡 Kafka broker (예: 34.64.x.x:9093)", id="broker"),
+            Input(placeholder="💬 채팅 토픽", id="topic"),
+            Input(placeholder="🧑 내 이름", id="name"),
+            Button("✅ 채팅 시작", id="start"),
+            id="main-container"
+        )
 
     def on_button_pressed(self, event: Button.Pressed):
         if event.button.id == "start":
@@ -45,11 +48,13 @@ class KafkaChatApp(App):
             self.query_one("#name").remove()
             event.button.remove()
 
-            self.chat_log = TextArea()
-            self.chat_log.disabled = True
-            self.mount(self.chat_log)
-            self.mount(Input(placeholder="\uba54\uc2dc\uc9c0\ub97c \uc785\ub825\ud558\uc138\uc694... (exit \uc785\ub825 \uc2dc \uc885\ub8cc)", id="chat-input"))
-            self.mount(Static("", id="typing-notice"))
+            self.chat_log = Log(highlight=True, auto_scroll=True, id="chat-log")
+            container = self.query_one("#main-container")
+            container.mount_all([
+                self.chat_log,
+                Input(placeholder="메시지를 입력하세요... (exit 입력 시 종료)", id="chat-input"),
+                Static("", id="typing-notice")
+            ])
 
             self.consumer = KafkaConsumer(
                 self.topic,
@@ -84,19 +89,19 @@ class KafkaChatApp(App):
                     self.call_from_thread(lambda: self.show_typing(sender))
                 elif msg_type == "exit":
                     self.call_from_thread(lambda: self.append_message(
-                        self.format_message("\uc2dc\uc2a4\ud15c", f"\u2757 {sender} \ub2d8\uc774 \ucc44\ud305\uc744 \uc885\ub8cc\ud588\uc2b5\ub2c8\ub2e4.")
+                        self.format_message("시스템", f"❗ {sender} 님이 채팅을 종료했습니다.")
                     ))
             except Exception as e:
-                self.call_from_thread(lambda: self.append_message(f"\u274c JSON \uc624\ub958: {e}"))
+                self.call_from_thread(lambda: self.append_message(f"❌ JSON 오류: {e}"))
 
     def append_message(self, message: str):
         if self.chat_log:
-            self.chat_log.text += f"{message}\n"
+            self.chat_log.write_line(message)
 
     async def on_input_submitted(self, event: Input.Submitted):
         msg = event.value.strip()
         if msg.lower() == "exit":
-            self.append_message(self.format_message("\uc2dc\uc2a4\ud15c", "\ud83d\udc4b \ucc44\ud305\uc744 \uc885\ub8cc\ud569\ub2c8\ub2e4."))
+            self.append_message(self.format_message("시스템", "👋 채팅을 종료합니다."))
             self.producer.send(self.topic, {
                 "sender": self.my_name,
                 "type": "exit"
@@ -128,7 +133,7 @@ class KafkaChatApp(App):
             self.producer.flush()
 
     def show_typing(self, sender: str):
-        self.query_one("#typing-notice", Static).update(f"\u270f\ufe0f {sender} \ub2d8\uc774 \uc785\ub825 \uc911...")
+        self.query_one("#typing-notice", Static).update(f"✏️ {sender} 님이 입력 중...")
         if self._typing_timer:
             self._typing_timer.cancel()
         self._typing_timer = Timer(3, self.clear_typing_notice)
@@ -146,11 +151,11 @@ class KafkaChatApp(App):
     def format_message(self, sender: str, message: str) -> str:
         ts = self.timestamp()
         if sender == self.my_name:
-            label = f"[b green]{sender}[/]"
-        elif sender == "\uc2dc\uc2a4\ud15c":
-            label = f"[red]{sender}[/]"
+            label = f"🟢 {sender}"
+        elif sender == "시스템":
+            label = f"🔴 {sender}"
         else:
-            label = f"[b blue]{sender}[/]"
+            label = f"🔵 {sender}"
         line = f"{label} > {message}"
         padding = max(0, 60 - len(self.strip_tags(line)))
         return f"{line}{' ' * padding}[{ts}]"
@@ -167,4 +172,3 @@ def entry_point():
 
 if __name__ == "__main__":
     entry_point()
-
