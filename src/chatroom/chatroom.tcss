@@ -1,0 +1,29 @@
+Screen {
+  background: white;
+  color: black;
+}
+
+TextArea {
+  background: #ffffff;
+  color: #000000;
+  border: round #cccccc;
+}
+
+Input {
+  background: #f9f9f9;
+  color: #000000;
+  border: solid #aaaaaa;
+}
+
+Button {
+  background: #eeeeee;
+  color: #000000;
+  border: solid #aaaaaa;
+}
+
+#typing-notice {
+  padding: 1;
+  text-style: italic;
+  color: #666666;
+}
+
